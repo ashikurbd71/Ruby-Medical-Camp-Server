@@ -90,6 +90,45 @@ async function run() {
      })
 
 
+    // --------------------------------- post adddca,ps ---------------------
+
+    app.post('/add-a-camp',async(req,res) => {
+    
+     
+    try{
+
+      const camp = req.body
+      const result = await addCampColaction.insertOne(camp)
+      res.send(result)
+    }
+
+    catch(err){
+      console.log(err)
+    }
+
+    })
+
+
+    // --------------get camp by user mail--------------------------------------
+
+    app.get('/add-a-camp/:email',async(req,res) => {
+    
+     
+      try{
+  
+        const email = req.query.email
+        const query = { organizer : email}
+        const result = await addCampColaction.find(query).toArray()
+        res.send(result)
+      }
+  
+      catch(err){
+        console.log(err)
+      }
+  
+      })
+
+
 
 
 
