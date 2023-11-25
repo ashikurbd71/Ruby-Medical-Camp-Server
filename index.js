@@ -2,7 +2,7 @@ const express = require('express')
 const app = express()
 const cors = require('cors')
 require("dotenv").config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000
 
 
@@ -90,7 +90,7 @@ async function run() {
      })
 
 
-    // --------------------------------- post adddca,ps ---------------------
+    // --------------------------------- post adddcamp ---------------------
 
     app.post('/add-a-camp',async(req,res) => {
     
@@ -108,8 +108,45 @@ async function run() {
 
     })
 
+    // -----------------------------get all add data-----------------------
 
-    // --------------get camp by user mail--------------------------------------
+    app.get('/all-camp',async(req,res) => {
+    
+     
+      try{
+  
+        
+        const result = await addCampColaction.find().toArray()
+        res.send(result)
+      }
+  
+      catch(err){
+        console.log(err)
+      }
+  
+      })
+
+      // --------------------------------------------get single data by id-----------------------------
+
+      
+    app.get('/all-camp/:id',async(req,res) => {
+    
+     
+      try{
+  
+        const id = req.params.id;
+        const query = { _id : new ObjectId(id) };
+        const result = await addCampColaction.findOne(query)
+        res.send(result)
+      }
+  
+      catch(err){
+        console.log(err)
+      }
+  
+      })
+
+    // --------------get camp by organizer mail--------------------------------------
 
     app.get('/add-a-camp/:email',async(req,res) => {
     
@@ -128,6 +165,37 @@ async function run() {
   
       })
 
+// --------------------orgnizer campdata update ------------------------------------------
+
+app.put('/update-camp/:id',async(req,res) => {
+
+  try{
+    const id = req.params.id;
+    const camp = req.body;
+    
+    console.log("id", id, data);
+    const filter = { _id: new ObjectId(id) };
+    // const options = { upsert: true };
+    const updatedcamp = {
+      $set: {
+      ...camp
+      },
+    };
+    const result = await addCampColaction.updateOne(
+      filter,
+      updatedcamp,
+      // options
+    );
+    res.send(result);
+  }
+
+  catch(err){
+    console.log(err)
+  }
+})
+
+
+//---------------------------------dlete camp----------------------------
 
 
 
