@@ -198,7 +198,23 @@ app.put('/update-camp/:id',async(req,res) => {
 //---------------------------------dlete camp----------------------------
 
 
+app.delete('/deletecamp/delete/:id',async(req,res) => {
 
+
+  try{
+    const id = req.params.id;
+    console.log("delete", id);
+    const query = { _id : new ObjectId(id),
+    };
+    const result = await addCampColaction.deleteOne(query);
+    console.log(result);
+    res.send(result);
+  }
+
+  catch(err){
+     console.log(err)
+  }
+})
 
 
 
