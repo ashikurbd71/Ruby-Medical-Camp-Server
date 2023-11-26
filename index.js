@@ -90,7 +90,7 @@ async function run() {
      })
 
 
-    // --------------------------------- post adddcamp ---------------------
+    // --------------------------------- POST CAMP ---------------------
 
     app.post('/add-a-camp',async(req,res) => {
     
@@ -108,7 +108,7 @@ async function run() {
 
     })
 
-    // -----------------------------get all add data-----------------------
+    // -----------------------------GET ALL CAMP-----------------------
 
     app.get('/all-camp',async(req,res) => {
     
@@ -126,7 +126,7 @@ async function run() {
   
       })
 
-      // --------------------------------------------get single data by id-----------------------------
+      // --------------------------------------------GET SINGLE CMAP BY ID-----------------------------
 
       
     app.get('/all-camp/:id',async(req,res) => {
@@ -146,7 +146,7 @@ async function run() {
   
       })
 
-    // --------------get camp by organizer mail--------------------------------------
+    // --------------GET CAMP BY ORGANIZER EMAIL--------------------------------------
 
     app.get('/add-a-camp/:email',async(req,res) => {
     
@@ -165,7 +165,7 @@ async function run() {
   
       })
 
-// --------------------orgnizer campdata update ------------------------------------------
+// --------------------ORGANIZER DATA UPDATE ------------------------------------------
 
 app.put('/update-camp/:id',async(req,res) => {
 
@@ -195,7 +195,7 @@ app.put('/update-camp/:id',async(req,res) => {
 })
 
 
-//---------------------------------dlete camp----------------------------
+//---------------------------------ORGANIZER DELETE CAMP----------------------------
 
 
 app.delete('/deletecamp/delete/:id',async(req,res) => {
@@ -218,6 +218,66 @@ app.delete('/deletecamp/delete/:id',async(req,res) => {
 
 
 
+// -------------------------------------------------REGISTER DETAILS POST-------------------------------
+
+
+app.post('/register-camp',async(req,res) => {
+    
+     
+  try{
+
+    const register = req.body
+    const result = await registerCampColaction.insertOne(register)
+    res.send(result)
+  }
+
+  catch(err){
+    console.log(err)
+  }
+
+  })
+
+
+
+// -------------------------------------------------REGISTER DETAILS GET ALL-------------------------------
+
+
+app.get('/register-camp',async(req,res) => {
+
+  try{
+
+   
+    const result = await registerCampColaction.find().toArray()
+    res.send(result)
+  }
+
+  catch(err){
+    console.log(err)
+  }
+
+
+})
+
+
+// -------------------------------------------------REGISTER DETAILS GET SINGLE DATA-------------------------------
+
+
+app.get('/register-camp/:id',async(req,res) => {
+
+  try{
+
+    const id = req.params.id
+    const query = { _id : new ObjectId(id)}
+    const result = await registerCampColaction.findOne(query)
+    res.send(result)
+  }
+
+  catch(err){
+    console.log(err)
+  }
+
+
+})
 
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
