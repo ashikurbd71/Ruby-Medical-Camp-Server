@@ -279,6 +279,29 @@ app.get('/register-camp/:id',async(req,res) => {
 
 })
 
+// / -------------------------------------------------REGISTER REQUEST SUCCESSS-------------------------------
+
+
+app.patch('/register-camp/status/:id',async(req,res) => {
+try{
+  
+  const id = req.params.id
+  const filter ={_id : new ObjectId(id)}
+  const updateDoc = {
+    $set: {
+      status : 'Confrim'
+    },
+  };
+  const result = await registerCampColaction.updateOne(filter,updateDoc)
+  res.send(result)
+}
+catch(err){
+
+  console.log(err)
+}
+})
+
+
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
