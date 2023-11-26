@@ -301,6 +301,24 @@ catch(err){
 }
 })
 
+// / -------------------------------------------------REGISTER REQUEST DElETE-------------------------------
+
+
+app.delete('/register-camp/delete/:id',async(req,res) => {
+  try{
+    
+    const id = req.params.id
+    const query ={ _id : new ObjectId(id)}
+    const result = await registerCampColaction.deleteOne(query)
+    res.send(result)
+    console.log(result)
+  }
+  catch(err){
+  
+    console.log(err)
+  }
+  })
+
 
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
