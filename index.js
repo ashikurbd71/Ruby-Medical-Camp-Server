@@ -38,7 +38,7 @@ async function run() {
     //----------------------------- databagecolection--------------------------------
     const userCampColaction = client.db("MedicalCampDB").collection("Users");
     const addCampColaction = client.db("MedicalCampDB").collection("AddCamp");
-    const managesCampColaction = client.db("MedicalCampDB").collection("ManagesCamp");
+    const feedbackCampColaction = client.db("MedicalCampDB").collection("FeedBack");
     const registerCampColaction = client.db("MedicalCampDB").collection("RegisterCamp");
     const paymentcolaction = client.db("MedicalCampDB").collection("Payment");
 
@@ -426,7 +426,7 @@ app.get('/register-camp/email/:email',async(req,res) => {
 
   })
 
-  //  paymmet pach---------------------------------------------------
+  //  ----------------------------------------PAYMENT PACH---------------------------------------------------
 
   app.patch('/payment/status/:id',async(req,res) =>{
 
@@ -457,7 +457,7 @@ app.get('/register-camp/email/:email',async(req,res) => {
   })
   
 
-  // get payment-------------------------
+  // ---------------------------------GET PAYMNET-------------------------
 
   
 app.get('/payment/email/:email',async(req,res) => {
@@ -478,6 +478,71 @@ app.get('/payment/email/:email',async(req,res) => {
   }
 
   })
+
+
+
+  // -------------------------FEEDBACK AND RATING GET BY EMAIL AND STATUS----------------------------
+
+  app.get('/feedback-and-ratings/email/:email', async (req, res) => {
+    try {
+      const email = req.params.email;
+  
+      const query = { "participants.email": email, status: 'Confrimed', payment: 'Confrimed' };
+  
+      console.log(query);
+  
+      const results = await registerCampColaction.find(query).toArray();
+  
+      console.log(results);
+      res.send(results);
+    } catch (err) {
+      console.log(err);
+      res.status(500).send('Internal Server Error');
+    }
+  });
+
+
+
+  // ------------------POST FEEDBACK----------------------
+  
+
+  app.post('/feedback-camp',async(req,res) =>{
+
+    try{
+  
+      const feedback = req.body
+      const result = await feedbackCampColaction.insertOne(feedback)
+      console.log(result)
+      res.send(result)
+    }
+  
+    catch(err){
+  
+       console.log(err)
+    }
+  
+    })
+
+// ----------------------------------------GET FEED BACK---------------------
+
+
+
+app.get('/feedback-camp',async(req,res) => {
+    
+     
+  try{
+
+    
+    const result = await feedbackCampColaction.find().toArray()
+    res.send(result)
+  }
+
+  catch(err){
+    console.log(err)
+  }
+
+  })
+
 
 
 
