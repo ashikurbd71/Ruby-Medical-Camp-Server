@@ -2,13 +2,14 @@ const express = require('express')
 const app = express()
 const cors = require('cors')
 require("dotenv").config();
+const stripe = require('stripe')(process.env.VITE_STRIPE_PAYMENT_KEY)
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000
 
 
 
 const corsOptions = {
-  origin: ['http://localhost:5173', 'http://localhost:5174'],
+  origin: ['http://localhost:5173', 'http://localhost:5174','http://localhost:5175'],
   credentials: true,
   optionSuccessStatus: 200,
 }
@@ -39,7 +40,7 @@ async function run() {
     const addCampColaction = client.db("MedicalCampDB").collection("AddCamp");
     const managesCampColaction = client.db("MedicalCampDB").collection("ManagesCamp");
     const registerCampColaction = client.db("MedicalCampDB").collection("RegisterCamp");
-    
+    const paymentcolaction = client.db("MedicalCampDB").collection("Payment");
 
     // ----------------------USERS DATA POST------------------------------
 
@@ -154,6 +155,7 @@ async function run() {
       try{
   
         const email = req.query.email
+        console.log('157 ---->',email)
         const query = { organizer : email}
         const result = await addCampColaction.find(query).toArray()
         res.send(result)
@@ -289,7 +291,7 @@ try{
   const filter ={_id : new ObjectId(id)}
   const updateDoc = {
     $set: {
-      status : 'Confrim'
+      status : 'Confrimed'
     },
   };
   const result = await registerCampColaction.updateOne(filter,updateDoc)
@@ -318,6 +320,133 @@ app.delete('/register-camp/delete/:id',async(req,res) => {
     console.log(err)
   }
   })
+
+
+  
+// / -------------------------------------------------REGISTER REQUEST GET BY EMAIL-------------------------------
+
+
+app.get('/register-camp/email/:email',async(req,res) => {
+    
+     
+  try{
+
+    const email = req.params.email
+    console.log('333 line --->',email)
+    const query = { 'participants.email' : email}
+    console.log('335 line --->',query)
+    const result = await registerCampColaction.find(query).toArray()
+    res.send(result)
+  }
+
+  catch(err){
+    console.log(err)
+  }
+
+  })
+
+
+  // -----------------------------------------GENARETE CLIENT SECRET------------------------------------
+
+  app.post('/create-paymnet-intent',async(req,res) => {
+    
+
+    try{
+
+      
+    const {price} = req.body
+   
+    const amuont = parseInt(price * 100)
+
+    const paymentIntent = await stripe.paymentIntents.create({
+
+      amount: amuont,
+      currency: 'usd',
+      payment_method_types:['card']
+    })
+
+    res.send({
+      clientSecret: paymentIntent.client_secret,
+    })
+    }
+ catch(err){
+
+   console.log(err)
+ }
+  })
+  
+  // --------------------------PAYMENT COLACTION POST-------------------------
+
+  app.post('/payment',async(req,res) =>{
+
+  try{
+
+    const payment = req.body
+    const paymnetresult = await paymentcolaction.insertOne(payment)
+    console.log(payment)
+    res.send(paymnetresult)
+  }
+
+  catch(err){
+
+     console.log(err)
+  }
+
+  })
+
+  //  paymmet pach---------------------------------------------------
+
+  app.patch('/payment/status/:id',async(req,res) =>{
+
+    try{
+  
+      const id = req.params.id
+      console.log(id)
+      const query = { _id : new ObjectId(id)}
+
+      const updatedoc = {
+
+        $set:{
+
+          payment : 'paid'
+        }
+      }
+
+      const result = await registerCampColaction.updateOne(query,updatedoc)
+
+      res.send(result)
+    }
+  
+    catch(err){
+  
+       console.log(err)
+    }
+
+  })
+  
+
+  // get payment-------------------------
+
+  
+app.get('/payment/email/:email',async(req,res) => {
+    
+     
+  try{
+
+    const email = req.params.email
+    console.log('333777 line --->',email)
+    const query = { email : email}
+    console.log('335 line --->',query)
+    const result = await paymentcolaction.find(query).toArray()
+    res.send(result)
+  }
+
+  catch(err){
+    console.log(err)
+  }
+
+  })
+
 
 
     await client.db("admin").command({ ping: 1 });
