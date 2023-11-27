@@ -41,6 +41,7 @@ async function run() {
     const feedbackCampColaction = client.db("MedicalCampDB").collection("FeedBack");
     const registerCampColaction = client.db("MedicalCampDB").collection("RegisterCamp");
     const paymentcolaction = client.db("MedicalCampDB").collection("Payment");
+    const healthcareColaction = client.db("MedicalCampDB").collection("Healthcare");
 
     // ----------------------USERS DATA POST------------------------------
 
@@ -543,6 +544,108 @@ app.get('/feedback-camp',async(req,res) => {
 
   })
 
+
+
+  // ------------------------------------------post professional user data post--------------------------------------
+
+  app.post('/healthcareprofile',async(req,res) =>{
+
+    try{
+  
+      const data = req.body
+      const result = await healthcareColaction.insertOne(data)
+      console.log(result)
+      res.send(result)
+    }
+  
+    catch(err){
+  
+       console.log(err)
+    }
+  
+    })
+
+
+
+    // healcare data get-----------------------------------
+
+
+    app.get('/healthcareprofile',async(req,res) =>{
+
+      try{
+    
+     
+        const result = await healthcareColaction.find().toArray()
+        console.log(result)
+        res.send(result)
+      }
+    
+      catch(err){
+    
+         console.log(err)
+      }
+    
+      })
+
+
+      // --------------------------------FIND ONE---------------------------
+
+
+      app.get('/healthcareprofile/:email', async (req, res) => {
+        try {
+          // Assuming you get the email from the request query parameter
+          const email = req.params.email;
+        console.log(email)
+          // Find the healthcare profile by email
+          const result = await healthcareColaction.findOne({ email: email });
+      
+
+           res.send(result)
+
+        } catch (err) {
+          console.error(err);
+          res.status(500).send('Internal Server Error');
+        }
+      });
+
+
+
+  // show home card-----
+
+  app.get('/show-home', async (req, res) => {
+    try {
+      const result = await registerCampColaction.aggregate([
+        {
+          $lookup: {
+            from: 'AddCamp',
+            localField: "campid",
+            foreignField: "_id",
+            as: "popularcamps"
+          }
+        },
+        {
+          $project: {
+            _id: 1,
+            campname: 1,
+            location: 1,
+            fees: 1,
+            services:1,
+            professional:1,
+            audience:1,
+            date:1,
+            time:1,
+            message:1,
+            registrationsCount: { $size: "$popularcamps" }
+          }
+        }
+      ]).toArray();
+  
+      res.json(result);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
+  });
 
 
 
