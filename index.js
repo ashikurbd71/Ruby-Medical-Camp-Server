@@ -175,7 +175,7 @@ app.put('/update-camp/:id',async(req,res) => {
     const id = req.params.id;
     const camp = req.body;
     
-    console.log("id", id, data);
+    console.log("id", id);
     const filter = { _id: new ObjectId(id) };
     // const options = { upsert: true };
     const updatedcamp = {
@@ -195,6 +195,9 @@ app.put('/update-camp/:id',async(req,res) => {
     console.log(err)
   }
 })
+
+
+
 
 
 //---------------------------------ORGANIZER DELETE CAMP----------------------------
@@ -302,6 +305,35 @@ catch(err){
   console.log(err)
 }
 })
+
+
+
+
+// / -------------------------------------------------REGISTER REQUEST SUCCESSS-------------------------------
+
+
+app.patch('/register-camp/paid/:id',async(req,res) => {
+  try{
+    
+    const id = req.params.id
+    const filter ={_id : new ObjectId(id)}
+    const updateDoc = {
+      $set: {
+        payment : 'Confrimed'
+      },
+    };
+    const result = await registerCampColaction.updateOne(filter,updateDoc)
+    res.send(result)
+  }
+  catch(err){
+  
+    console.log(err)
+  }
+  })
+  
+
+
+// 
 
 // / -------------------------------------------------REGISTER REQUEST DElETE-------------------------------
 
