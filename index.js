@@ -118,9 +118,11 @@ async function run() {
     
      
       try{
-  
-        
-        const result = await addCampColaction.find().toArray()
+        const page = req.query.page
+        const pagesNumber = parseInt(page)
+        const perpages = 9
+        const skip = pagesNumber * perpages
+        const result = await addCampColaction.find().skip(skip).limit(perpages).toArray()
         res.send(result)
       }
   
@@ -751,13 +753,16 @@ app.get('/feedback-camp',async(req,res) => {
 
   app.get('/show-home', async (req, res) => {
     try {
+
+  
       const result = await addCampColaction.aggregate([
+      
         {
           $lookup: {
             from: 'RegisterCamp',
             localField: 'id',
             foreignField: 'campid',
-            as: 'popularcamps'
+            as: 'registrations'
           }
         },
         {
@@ -772,16 +777,10 @@ app.get('/feedback-camp',async(req,res) => {
             date: 1,
             time: 1,
             message: 1,
-            image:1,
-            registrationsCount: { $size: '$popularcamps' }
+            image: 1,
+            registrationsCount: { $size: '$registrations' }
           }
-        },
-        {
-          $sort: { registrationsCount: -1 } // Sort by registrationsCount in descending order
-        },
-          {
-        $limit: 6 // Limit the result to 6 documents
-      }
+        }
       ]).toArray();
   
       res.json(result);
@@ -790,8 +789,7 @@ app.get('/feedback-camp',async(req,res) => {
       res.status(500).json({ message: 'Internal Server Error' });
     }
   });
-
-
+  
 
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
