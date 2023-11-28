@@ -548,23 +548,62 @@ app.get('/feedback-camp',async(req,res) => {
 
   // ------------------------------------------post professional user data post--------------------------------------
 
-  app.post('/healthcareprofile',async(req,res) =>{
+  app.put('/healthcareprofile/exit/:email',async(req,res) =>{
 
     try{
-  
-      const data = req.body
-      const result = await healthcareColaction.insertOne(data)
-      console.log(result)
+
+      const email = req.params.email
+      const user = req.body
+      const query = { email: email }
+      const options = { upsert: true }
+      const isExist = await healthcareColaction.findOne(query)
+      console.log('User found?----->', isExist)
+      if (isExist) return res.send(isExist)
+      const result = await healthcareColaction.updateOne(
+        query,
+        {
+          $set: { ...user, timestamp: Date.now() },
+        },
+        options
+      )
       res.send(result)
     }
-  
-    catch(err){
-  
-       console.log(err)
-    }
+
+     catch(err){
+
+      console.log(errr)
+     }
   
     })
 
+
+    // ----------------------------------------------Update Profile--------------------------------------------------------------------
+
+    app.patch('/healthcareprofile/update/:email',async(req,res) =>{
+
+      try{
+  
+        const email = req.params.email
+        const profile = req.body
+        const query = { email: email }
+        const options = { upsert: true }
+      
+        const result = await healthcareColaction.updateOne(
+          query,
+          {
+            $set:  {...profile}
+          },
+          options
+        )
+        res.send(result)
+      }
+  
+       catch(err){
+  
+        console.log(errr)
+       }
+    
+      })
 
 
     // healcare data get-----------------------------------
@@ -591,22 +630,23 @@ app.get('/feedback-camp',async(req,res) => {
       // --------------------------------FIND ONE---------------------------
 
 
-      app.get('/healthcareprofile/:email', async (req, res) => {
-        try {
-          // Assuming you get the email from the request query parameter
-          const email = req.params.email;
-        console.log(email)
-          // Find the healthcare profile by email
-          const result = await healthcareColaction.findOne({ email: email });
-      
+      app.get('/healthcareprofile/email/:email', async (req, res) => {
+       
 
-           res.send(result)
-
-        } catch (err) {
-          console.error(err);
-          res.status(500).send('Internal Server Error');
-        }
-      });
+          try{
+           const email = req.params.email
+           console.log(email)
+           
+             const result = await healthcareColaction.findOne({email})
+             console.log(result)
+             res.send(result)
+          }
+          catch(err){
+           console.log(err)
+          }
+            
+          })
+   
 
 
 
