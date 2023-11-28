@@ -9,7 +9,7 @@ const port = process.env.PORT || 5000
 
 
 const corsOptions = {
-  origin: ['http://localhost:5173', 'http://localhost:5174','http://localhost:5175'],
+  origin: ['http://localhost:5173','http://localhost:5175','https://ruby-medical-camps.surge.sh'],
   credentials: true,
   optionSuccessStatus: 200,
 }
@@ -43,6 +43,7 @@ async function run() {
     const paymentcolaction = client.db("MedicalCampDB").collection("Payment");
     const healthcareColaction = client.db("MedicalCampDB").collection("Healthcare");
     const upCamingCampcareColaction = client.db("MedicalCampDB").collection("upCamingCamp");
+    const uupCamingCampRegsiterCareColaction = client.db("MedicalCampDB").collection("UpCamingCampRegsiter");
 
     // ----------------------USERS DATA POST------------------------------
 
@@ -705,6 +706,44 @@ app.get('/feedback-camp',async(req,res) => {
       
           })
    
+    
+
+  // ---------------------------POST UPCAMING REGSITER USER AND PROFESIONAL-------------------------
+
+
+  app.post('/upcamingregister', async (req, res) => {
+    try {
+      const participantDetails = req.body;
+  
+      // Insert participant details into the MongoDB collection
+      const result = await uupCamingCampRegsiterCareColaction.insertOne(participantDetails);
+  
+      // Increment the interested participant count in the same collection
+      await uupCamingCampRegsiterCareColaction.updateOne(
+        { _id: 'camp_interest_count' }, // Assuming you have a document with this specific _id to store the count
+        { $inc: { interestedParticipantCount: 1 } },
+        { upsert: true } // Create the document if it doesn't exist
+      );
+  
+      // Check if the participant is a professional
+      if (participantDetails.isProfessional) {
+        // Increment the professional participant count in the same collection
+        await uupCamingCampRegsiterCareColaction.updateOne(
+          { _id: 'camp_professional_count' }, // Assuming you have a document with this specific _id to store the count
+          { $inc: { professionalParticipantCount: 1 } },
+          { upsert: true } // Create the document if it doesn't exist
+        );
+      }
+  
+      res.status(200).json({ message: 'Participant added successfully' });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+  
+  
+
 
 
 
@@ -712,13 +751,13 @@ app.get('/feedback-camp',async(req,res) => {
 
   app.get('/show-home', async (req, res) => {
     try {
-      const result = await registerCampColaction.aggregate([
+      const result = await addCampColaction.aggregate([
         {
           $lookup: {
-            from: 'AddCamp',
-            localField: "campid",
-            foreignField: "_id",
-            as: "popularcamps"
+            from: 'RegisterCamp',
+            localField: 'id',
+            foreignField: 'campid',
+            as: 'popularcamps'
           }
         },
         {
@@ -727,15 +766,22 @@ app.get('/feedback-camp',async(req,res) => {
             campname: 1,
             location: 1,
             fees: 1,
-            services:1,
-            professional:1,
-            audience:1,
-            date:1,
-            time:1,
-            message:1,
-            registrationsCount: { $size: "$popularcamps" }
+            services: 1,
+            professional: 1,
+            audience: 1,
+            date: 1,
+            time: 1,
+            message: 1,
+            image:1,
+            registrationsCount: { $size: '$popularcamps' }
           }
-        }
+        },
+        {
+          $sort: { registrationsCount: -1 } // Sort by registrationsCount in descending order
+        },
+          {
+        $limit: 6 // Limit the result to 6 documents
+      }
       ]).toArray();
   
       res.json(result);
