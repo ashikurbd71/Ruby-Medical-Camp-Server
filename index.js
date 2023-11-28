@@ -42,6 +42,7 @@ async function run() {
     const registerCampColaction = client.db("MedicalCampDB").collection("RegisterCamp");
     const paymentcolaction = client.db("MedicalCampDB").collection("Payment");
     const healthcareColaction = client.db("MedicalCampDB").collection("Healthcare");
+    const upCamingCampcareColaction = client.db("MedicalCampDB").collection("upCamingCamp");
 
     // ----------------------USERS DATA POST------------------------------
 
@@ -645,6 +646,63 @@ app.get('/feedback-camp',async(req,res) => {
            console.log(err)
           }
             
+          })
+
+
+
+
+    // --------------------------------- POST CAMP ---------------------
+
+    app.post('/add-upcaming-camp',async(req,res) => {
+    
+     
+      try{
+  
+        const upcamp = req.body
+        const result = await upCamingCampcareColaction.insertOne(upcamp)
+        res.send(result)
+      }
+  
+      catch(err){
+        console.log(err)
+      }
+  
+      })
+
+
+
+        // -----------------------------GET ALL UPCAMINGCAMP-----------------------
+
+        app.get('/all-upcamingcamp', async (req, res) => {
+          try {
+            
+            const result = await upCamingCampcareColaction.find().limit(6).toArray();
+            res.send(result);
+          } catch (err) {
+            console.log(err);
+          }
+        });
+  
+
+        
+
+        // -----------------------------GET one UPCAMINGCAMP-----------------------
+
+        app.get('/all-upcamingcamp/:id',async(req,res) => {
+    
+     
+          try{
+      
+            const id = req.params.id;
+            const query = { _id : new ObjectId(id) };
+            const result = await upCamingCampcareColaction.findOne(query)
+            res.send(result)
+          }
+      
+          catch(err){
+            console.log(err)
+          }
+      
           })
    
 
