@@ -2,6 +2,9 @@ const express = require('express')
 const app = express()
 const cors = require('cors')
 require("dotenv").config();
+const jwt = require('jsonwebtoken')
+const cookieParser = require('cookie-parser')
+const morgan = require('morgan')
 const stripe = require('stripe')(process.env.VITE_STRIPE_PAYMENT_KEY)
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000
@@ -17,6 +20,27 @@ const corsOptions = {
 
 app.use(cors(corsOptions))
 app.use(express.json())
+app.use(morgan('dev'))
+app.use(cookieParser())
+
+
+
+
+const verifyToken = async (req, res, next) => {
+  const token = req.cookies?.token
+  console.log(token)
+  if (!token) {
+    return res.status(401).send({ message: 'unauthorized access' })
+  }
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      console.log(err)
+      return res.status(401).send({ message: 'unauthorized access' })
+    }
+    req.user = decoded
+    next()
+  })
+}
 
 
 
@@ -45,6 +69,57 @@ async function run() {
     const upCamingCampcareColaction = client.db("MedicalCampDB").collection("upCamingCamp");
     const uupCamingCampRegsiterCareColaction = client.db("MedicalCampDB").collection("UpCamingCampRegsiter");
 
+   
+  //  ------------------------------------JWT IN AND OUT TOKEN----------------------------------
+
+
+
+
+
+    // ---------------------------------------JWT POST TOKEN-----------------------------------
+
+
+      app.post('/jwt', async (req, res) => {
+        const user = req.body
+        console.log('I need a new jwt', user)
+        const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+          expiresIn: '365d',
+        })
+        res
+          .cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+          })
+          .send({ success: true })
+      })
+  
+      // ---------------------------------------JWT LOGOUT-----------------------------------
+
+
+      app.get('/logout', async (req, res) => {
+        try {
+          res
+            .clearCookie('token', {
+              maxAge: 0,
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+            })
+            .send({ success: true })
+          console.log('Logout successful')
+        } catch (err) {
+          res.status(500).send(err)
+        }
+      })
+   
+   
+   
+   
+   
+   
+   
+   
+   
     // ----------------------USERS DATA POST------------------------------
 
      app.put('/users/:email',async(req,res) => {
@@ -77,7 +152,7 @@ async function run() {
 
     // -------------------------USER DATA GET-------------------------------
    
-    app.get('/users/email/:email',async(req,res) => {
+    app.get('/users/email/:email',verifyToken,async(req,res) => {
 
      try{
       const email = req.params.email
@@ -96,7 +171,7 @@ async function run() {
 
     // --------------------------------- POST CAMP ---------------------
 
-    app.post('/add-a-camp',async(req,res) => {
+    app.post('/add-a-camp',verifyToken,async(req,res) => {
     
      
     try{
@@ -118,9 +193,10 @@ async function run() {
     
      
       try{
-        const page = req.query.page
+        const query = req.query
+        const page = query.page
         const pagesNumber = parseInt(page)
-        const perpages = 9
+        const perpages = 2
         const skip = pagesNumber * perpages
         const result = await addCampColaction.find().skip(skip).limit(perpages).toArray()
         res.send(result)
@@ -135,7 +211,7 @@ async function run() {
       // --------------------------------------------GET SINGLE CMAP BY ID-----------------------------
 
       
-    app.get('/all-camp/:id',async(req,res) => {
+    app.get('/all-camp/:id',verifyToken,async(req,res) => {
     
      
       try{
@@ -154,7 +230,7 @@ async function run() {
 
     // --------------GET CAMP BY ORGANIZER EMAIL--------------------------------------
 
-    app.get('/add-a-camp/:email',async(req,res) => {
+    app.get('/add-a-camp/:email',verifyToken,async(req,res) => {
     
      
       try{
@@ -174,7 +250,7 @@ async function run() {
 
 // --------------------ORGANIZER DATA UPDATE ------------------------------------------
 
-app.put('/update-camp/:id',async(req,res) => {
+app.put('/update-camp/:id',verifyToken,async(req,res) => {
 
   try{
     const id = req.params.id;
@@ -208,7 +284,7 @@ app.put('/update-camp/:id',async(req,res) => {
 //---------------------------------ORGANIZER DELETE CAMP----------------------------
 
 
-app.delete('/deletecamp/delete/:id',async(req,res) => {
+app.delete('/deletecamp/delete/:id',verifyToken,async(req,res) => {
 
 
   try{
@@ -252,7 +328,7 @@ app.post('/register-camp',async(req,res) => {
 // -------------------------------------------------REGISTER DETAILS GET ALL-------------------------------
 
 
-app.get('/register-camp',async(req,res) => {
+app.get('/register-camp',verifyToken,async(req,res) => {
 
   try{
 
@@ -272,7 +348,7 @@ app.get('/register-camp',async(req,res) => {
 // -------------------------------------------------REGISTER DETAILS GET SINGLE DATA-------------------------------
 
 
-app.get('/register-camp/:id',async(req,res) => {
+app.get('/register-camp/:id',verifyToken,async(req,res) => {
 
   try{
 
@@ -292,7 +368,7 @@ app.get('/register-camp/:id',async(req,res) => {
 // / -------------------------------------------------REGISTER REQUEST SUCCESSS-------------------------------
 
 
-app.patch('/register-camp/status/:id',async(req,res) => {
+app.patch('/register-camp/status/:id',verifyToken,async(req,res) => {
 try{
   
   const id = req.params.id
@@ -317,7 +393,7 @@ catch(err){
 // / -------------------------------------------------REGISTER REQUEST SUCCESSS-------------------------------
 
 
-app.patch('/register-camp/paid/:id',async(req,res) => {
+app.patch('/register-camp/paid/:id',verifyToken,async(req,res) => {
   try{
     
     const id = req.params.id
@@ -343,7 +419,7 @@ app.patch('/register-camp/paid/:id',async(req,res) => {
 // / -------------------------------------------------REGISTER REQUEST DElETE-------------------------------
 
 
-app.delete('/register-camp/delete/:id',async(req,res) => {
+app.delete('/register-camp/delete/:id',verifyToken,async(req,res) => {
   try{
     
     const id = req.params.id
@@ -363,7 +439,7 @@ app.delete('/register-camp/delete/:id',async(req,res) => {
 // / -------------------------------------------------REGISTER REQUEST GET BY EMAIL-------------------------------
 
 
-app.get('/register-camp/email/:email',async(req,res) => {
+app.get('/register-camp/email/:email',verifyToken,async(req,res) => {
     
      
   try{
@@ -385,7 +461,7 @@ app.get('/register-camp/email/:email',async(req,res) => {
 
   // -----------------------------------------GENARETE CLIENT SECRET------------------------------------
 
-  app.post('/create-paymnet-intent',async(req,res) => {
+  app.post('/create-paymnet-intent',verifyToken,async(req,res) => {
     
 
     try{
@@ -433,7 +509,7 @@ app.get('/register-camp/email/:email',async(req,res) => {
 
   //  ----------------------------------------PAYMENT PACH---------------------------------------------------
 
-  app.patch('/payment/status/:id',async(req,res) =>{
+  app.patch('/payment/status/:id',verifyToken,async(req,res) =>{
 
     try{
   
@@ -465,7 +541,7 @@ app.get('/register-camp/email/:email',async(req,res) => {
   // ---------------------------------GET PAYMNET-------------------------
 
   
-app.get('/payment/email/:email',async(req,res) => {
+app.get('/payment/email/:email',verifyToken,async(req,res) => {
     
      
   try{
@@ -488,7 +564,7 @@ app.get('/payment/email/:email',async(req,res) => {
 
   // -------------------------FEEDBACK AND RATING GET BY EMAIL AND STATUS----------------------------
 
-  app.get('/feedback-and-ratings/email/:email', async (req, res) => {
+  app.get('/feedback-and-ratings/email/:email',verifyToken, async (req, res) => {
     try {
       const email = req.params.email;
   
@@ -552,7 +628,7 @@ app.get('/feedback-camp',async(req,res) => {
 
   // ------------------------------------------post professional user data post--------------------------------------
 
-  app.put('/healthcareprofile/exit/:email',async(req,res) =>{
+  app.put('/healthcareprofile/exit/:email',verifyToken,async(req,res) =>{
 
     try{
 
@@ -583,7 +659,7 @@ app.get('/feedback-camp',async(req,res) => {
 
     // ----------------------------------------------Update Profile--------------------------------------------------------------------
 
-    app.patch('/healthcareprofile/update/:email',async(req,res) =>{
+    app.patch('/healthcareprofile/update/:email',verifyToken,async(req,res) =>{
 
       try{
   
@@ -613,7 +689,7 @@ app.get('/feedback-camp',async(req,res) => {
     // healcare data get-----------------------------------
 
 
-    app.get('/healthcareprofile',async(req,res) =>{
+    app.get('/healthcareprofile',verifyToken,async(req,res) =>{
 
       try{
     
@@ -634,7 +710,7 @@ app.get('/feedback-camp',async(req,res) => {
       // --------------------------------FIND ONE---------------------------
 
 
-      app.get('/healthcareprofile/email/:email', async (req, res) => {
+      app.get('/healthcareprofile/email/:email',verifyToken, async (req, res) => {
        
 
           try{
@@ -656,7 +732,7 @@ app.get('/feedback-camp',async(req,res) => {
 
     // --------------------------------- POST CAMP ---------------------
 
-    app.post('/add-upcaming-camp',async(req,res) => {
+    app.post('/add-upcaming-camp',verifyToken,async(req,res) => {
     
      
       try{
@@ -691,7 +767,7 @@ app.get('/feedback-camp',async(req,res) => {
 
         // -----------------------------GET one UPCAMINGCAMP-----------------------
 
-        app.get('/all-upcamingcamp/:id',async(req,res) => {
+        app.get('/all-upcamingcamp/:id',verifyToken,async(req,res) => {
     
      
           try{
