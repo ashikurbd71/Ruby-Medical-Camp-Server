@@ -66,6 +66,7 @@ async function run() {
     const registerCampColaction = client.db("MedicalCampDB").collection("RegisterCamp");
     const paymentcolaction = client.db("MedicalCampDB").collection("Payment");
     const healthcareColaction = client.db("MedicalCampDB").collection("Healthcare");
+    // const OrganizerProfileColaction = client.db("MedicalCampDB").collection("OrganierProfile");
     const upCamingCampcareColaction = client.db("MedicalCampDB").collection("upCamingCamp");
     const uupCamingCampRegsiterCareColaction = client.db("MedicalCampDB").collection("UpCamingCampRegsiter");
 
@@ -751,6 +752,63 @@ app.get('/feedback-camp',async(req,res) => {
           })
 
 
+
+
+
+           // --------------------------------FIND ONE by role---------------------------
+
+
+      app.get('/healthcareprofile/role/:role',verifyToken, async (req, res) => {
+       
+
+        try{
+         const role = req.params.role
+         console.log(role)
+         
+           const result = await healthcareColaction.findOne({role})
+           console.log(result)
+           res.send(result)
+        }
+        catch(err){
+         console.log(err)
+        }
+          
+        })
+
+
+  // ------------------------------ORGNIZER PROFILE UPDATE ND ADDD------------------------------
+
+
+  app.patch('/organizerprofileupdate/role/:role',verifyToken,async(req,res) =>{
+
+    try{
+
+      const role = req.params.role
+      const profile = req.body
+      const query = { role : role }
+      const options = { upsert: true }
+    
+      const result = await healthcareColaction.updateOne(
+        query,
+        {
+          $set:  {...profile}
+        },
+        options
+      )
+      res.send(result)
+    }
+
+     catch(err){
+
+      console.log(errr)
+     }
+  
+    })
+
+ 
+  // 
+
+  
 
 
     // --------------------------------- POST CAMP ---------------------
