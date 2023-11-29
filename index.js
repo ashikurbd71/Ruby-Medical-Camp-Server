@@ -66,7 +66,6 @@ async function run() {
     const registerCampColaction = client.db("MedicalCampDB").collection("RegisterCamp");
     const paymentcolaction = client.db("MedicalCampDB").collection("Payment");
     const healthcareColaction = client.db("MedicalCampDB").collection("Healthcare");
-    // const OrganizerProfileColaction = client.db("MedicalCampDB").collection("OrganierProfile");
     const upCamingCampcareColaction = client.db("MedicalCampDB").collection("upCamingCamp");
     const uupCamingCampRegsiterCareColaction = client.db("MedicalCampDB").collection("UpCamingCampRegsiter");
 
@@ -424,7 +423,7 @@ app.patch('/register-camp/paid/:id',verifyToken,async(req,res) => {
     const filter ={_id : new ObjectId(id)}
     const updateDoc = {
       $set: {
-        payment : 'Confrimed'
+        payment : 'paid'
       },
     };
     const result = await registerCampColaction.updateOne(filter,updateDoc)
@@ -592,7 +591,7 @@ app.get('/payment/email/:email',verifyToken,async(req,res) => {
     try {
       const email = req.params.email;
   
-      const query = { "participants.email": email, status: 'Confrimed', payment: 'Confrimed' };
+      const query = { "participants.email": email, status: 'Confrimed', payment: 'paid' };
   
       console.log(query);
   
@@ -675,7 +674,7 @@ app.get('/feedback-camp',async(req,res) => {
 
      catch(err){
 
-      console.log(errr)
+      console.log(err)
      }
   
     })
@@ -806,10 +805,39 @@ app.get('/feedback-camp',async(req,res) => {
     })
 
  
-  // 
+  // / ------------------------------Partecepent PROFILE UPDATE ND ADDD------------------------------
+
+
+  app.patch('/updateprofilePartecipent/role/:role',verifyToken,async(req,res) =>{
+
+    try{
+
+      const role = req.params.role
+      const profile = req.body
+      const query = { role : role }
+      const options = { upsert: true }
+    
+      const result = await healthcareColaction.updateOne(
+        query,
+        {
+          $set:  {...profile}
+        },
+        options
+      )
+      res.send(result)
+    }
+
+     catch(err){
+
+      console.log(errr)
+     }
+  
+    })
 
   
 
+
+  // 
 
     // --------------------------------- POST CAMP ---------------------
 
