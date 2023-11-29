@@ -152,7 +152,7 @@ async function run() {
 
     // -------------------------USER DATA GET-------------------------------
    
-    app.get('/users/email/:email',verifyToken,async(req,res) => {
+    app.get('/users/email/:email',async(req,res) => {
 
      try{
       const email = req.params.email
@@ -196,7 +196,7 @@ async function run() {
         const query = req.query
         const page = query.page
         const pagesNumber = parseInt(page)
-        const perpages = 2
+        const perpages = 9
         const skip = pagesNumber * perpages
         const result = await addCampColaction.find().skip(skip).limit(perpages).toArray()
         res.send(result)
@@ -322,6 +322,29 @@ app.post('/register-camp',async(req,res) => {
   }
 
   })
+
+
+  // -------------------------------register campcolaction update-------------------------------------
+
+
+  app.patch('/camp-count/:id', async (req, res) => {
+    const id = req.params.id;
+    console.log(id);
+    
+    const exitCamp = await addCampColaction.findOne({ _id: new ObjectId(id) });
+    const currentCount = exitCamp && exitCamp.count !== undefined ? exitCamp.count : 0;
+
+    const query = { _id: new ObjectId(id) };
+    const updateDoc = {
+        $set: {
+            count: currentCount + 1
+        }
+    };
+
+    const result = await addCampColaction.updateOne(query, updateDoc);
+    res.send(result);
+});
+
 
 
 
@@ -828,43 +851,22 @@ app.get('/feedback-camp',async(req,res) => {
   // show home card-----
 
   app.get('/show-home', async (req, res) => {
-    try {
 
-  
-      const result = await addCampColaction.aggregate([
-      
-        {
-          $lookup: {
-            from: 'RegisterCamp',
-            localField: 'id',
-            foreignField: 'campid',
-            as: 'registrations'
-          }
-        },
-        {
-          $project: {
-            _id: 1,
-            campname: 1,
-            location: 1,
-            fees: 1,
-            services: 1,
-            professional: 1,
-            audience: 1,
-            date: 1,
-            time: 1,
-            message: 1,
-            image: 1,
-            registrationsCount: { $size: '$registrations' }
-          }
-        }
-      ]).toArray();
-  
-      res.json(result);
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: 'Internal Server Error' });
-    }
-  });
+   try{
+
+   const result = await addCampColaction.find().limit(6).sort({count:-1}).toArray()
+   res.send(result)
+
+   }
+ catch(err){
+   console.log(err)
+ }
+
+  })
+
+
+
+   
   
 
     await client.db("admin").command({ ping: 1 });
