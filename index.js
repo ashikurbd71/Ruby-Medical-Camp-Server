@@ -235,11 +235,12 @@ async function run() {
      
       try{
   
-        const email = req.query.email
+        const email = req.params.email
         console.log('157 ---->',email)
-        const query = { organizer : email}
+        const query = { email : email}
         const result = await addCampColaction.find(query).toArray()
         res.send(result)
+        console.log(result)
       }
   
       catch(err){
@@ -351,12 +352,17 @@ app.post('/register-camp',async(req,res) => {
 // -------------------------------------------------REGISTER DETAILS GET ALL-------------------------------
 
 
-app.get('/register-camp',verifyToken,async(req,res) => {
+app.get('/register-camp/email/:email',verifyToken,async(req,res) => {
 
   try{
 
+    const email = req.params.email
+
+
+    console.log('361------>',email)
+    const query = { emailid : email}
    
-    const result = await registerCampColaction.find().toArray()
+    const result = await registerCampColaction.find(query).toArray()
     res.send(result)
   }
 
@@ -462,7 +468,7 @@ app.delete('/register-camp/delete/:id',verifyToken,async(req,res) => {
 // / -------------------------------------------------REGISTER REQUEST GET BY EMAIL-------------------------------
 
 
-app.get('/register-camp/email/:email',verifyToken,async(req,res) => {
+app.get('/register-camp/emails/:email',verifyToken,async(req,res) => {
     
      
   try{
@@ -649,6 +655,29 @@ app.get('/feedback-camp',async(req,res) => {
 
 
 
+
+  // ---------------------------GET BY ORGANIZER FEEDBACK-----------------------
+
+  app.get('/feedback-camp/email/:email',async(req,res) => {
+    
+     
+    try{
+  
+       const email = req.params.email
+       const query = {email : email}
+      
+      const result = await feedbackCampColaction.find(query).toArray()
+      res.send(result)
+    }
+  
+    catch(err){
+      console.log(err)
+    }
+  
+    })
+
+
+
   // ------------------------------------------post professional user data post--------------------------------------
 
   app.put('/healthcareprofile/exit/:email',verifyToken,async(req,res) =>{
@@ -778,13 +807,14 @@ app.get('/feedback-camp',async(req,res) => {
   // ------------------------------ORGNIZER PROFILE UPDATE ND ADDD------------------------------
 
 
-  app.patch('/organizerprofileupdate/role/:role',verifyToken,async(req,res) =>{
+  app.patch('/organizerprofileupdate/email/:email',verifyToken,async(req,res) =>{
 
     try{
 
-      const role = req.params.role
+      const email = req.params.email
+      console.log('815-------->',email)
       const profile = req.body
-      const query = { role : role }
+      const query = { email : email }
       const options = { upsert: true }
     
       const result = await healthcareColaction.updateOne(
@@ -808,13 +838,13 @@ app.get('/feedback-camp',async(req,res) => {
   // / ------------------------------Partecepent PROFILE UPDATE ND ADDD------------------------------
 
 
-  app.patch('/updateprofilePartecipent/role/:role',verifyToken,async(req,res) =>{
+  app.patch('/updateprofilePartecipent/email/:email',verifyToken,async(req,res) =>{
 
     try{
 
-      const role = req.params.role
+      const email = req.params.email
       const profile = req.body
-      const query = { role : role }
+      const query = { email : email }
       const options = { upsert: true }
     
       const result = await healthcareColaction.updateOne(
@@ -870,6 +900,24 @@ app.get('/feedback-camp',async(req,res) => {
             console.log(err);
           }
         });
+
+
+
+
+          // -----------------------------GET ALL UPCAMINGCAMP by email-----------------------
+
+          app.get('/all-upcamingcamp/email/:email', async (req, res) => {
+            try {
+               const email = req.params.email
+               console.log('912--->',email)
+               const query = {email:  email}
+              const result = await upCamingCampcareColaction.find(query).toArray();
+              res.send(result);
+            } catch (err) {
+              console.log(err);
+            }
+          });
+    
   
 
         
@@ -898,38 +946,70 @@ app.get('/feedback-camp',async(req,res) => {
   // ---------------------------POST UPCAMING REGSITER USER AND PROFESIONAL-------------------------
 
 
-  app.post('/upcamingregister', async (req, res) => {
-    try {
-      const participantDetails = req.body;
+  app.patch('/upcamingpartecipent/id/:id', async (req, res) => {
+    const id = req.params.id;
+    console.log(id);
+    
+    const exitCamp = await upCamingCampcareColaction.findOne({ _id: new ObjectId(id) });
+    const currentCount = exitCamp && exitCamp.count !== undefined ? exitCamp.partecipent : 0;
+
+    const query = { _id: new ObjectId(id) };
+    const updateDoc = {
+        $set: {
+            partecipent : currentCount + 1
+        }
+    };
+
+    const result = await upCamingCampcareColaction.updateOne(query, updateDoc);
+    res.send(result);
+});
   
-      // Insert participant details into the MongoDB collection
-      const result = await uupCamingCampRegsiterCareColaction.insertOne(participantDetails);
   
-      // Increment the interested participant count in the same collection
-      await uupCamingCampRegsiterCareColaction.updateOne(
-        { _id: 'camp_interest_count' }, // Assuming you have a document with this specific _id to store the count
-        { $inc: { interestedParticipantCount: 1 } },
-        { upsert: true } // Create the document if it doesn't exist
-      );
+
+// 
+
+
+app.patch('/upcaminghealthcare-count/id/:id', async (req, res) => {
+  const id = req.params.id;
+  console.log(id);
   
-      // Check if the participant is a professional
-      if (participantDetails.isProfessional) {
-        // Increment the professional participant count in the same collection
-        await uupCamingCampRegsiterCareColaction.updateOne(
-          { _id: 'camp_professional_count' }, // Assuming you have a document with this specific _id to store the count
-          { $inc: { professionalParticipantCount: 1 } },
-          { upsert: true } // Create the document if it doesn't exist
-        );
+  const exitCamp = await upCamingCampcareColaction.findOne({ _id: new ObjectId(id) });
+  const currentCount = exitCamp && exitCamp.count !== undefined ? exitCamp.healthcare : 0;
+
+  const query = { _id: new ObjectId(id) };
+  const updateDoc = {
+      $set: {
+        healthcare : currentCount + 1
       }
-  
-      res.status(200).json({ message: 'Participant added successfully' });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-  });
-  
-  
+  };
+
+  const result = await upCamingCampcareColaction.updateOne(query, updateDoc);
+  res.send(result);
+});
+
+
+
+
+
+
+// 
+
+
+app.post('/add-upcamingregister-camp',verifyToken,async(req,res) => {
+    
+     
+  try{
+
+    const upcamp = req.body
+    const result = await uupCamingCampRegsiterCareColaction.insertOne(upcamp)
+    res.send(result)
+  }
+
+  catch(err){
+    console.log(err)
+  }
+
+  })
 
 
 
@@ -950,9 +1030,42 @@ app.get('/feedback-camp',async(req,res) => {
 
   })
 
+// aggregate by paymnet history
 
+app.get('/paymenthistorys/email/:email', async (req, res) => {
+  try {
 
-   
+    const email = req.params.email;
+
+    console.log('990 ---->',email)
+
+    const result = await registerCampColaction.aggregate([
+
+      {
+        $match: {
+          'participants.email': email  
+        }
+      },
+
+      {
+        $lookup: {
+          from: 'Payment',
+          localField: 'campid',
+          foreignField: '_id',
+          as: 'payments'
+        }
+      }
+    ]).toArray();
+
+    // Send the result as a JSON response
+    res.json(result);
+  } catch (error) {
+    // Handle any errors that occurred during the database operation
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
   
 
     await client.db("admin").command({ ping: 1 });
