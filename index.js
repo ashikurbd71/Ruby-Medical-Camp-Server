@@ -193,12 +193,12 @@ async function run() {
     
      
       try{
-        const query = req.query
-        const page = query.page
-        const pagesNumber = parseInt(page)
-        const perpages = 9
-        const skip = pagesNumber * perpages
-        const result = await addCampColaction.find().skip(skip).limit(perpages).toArray()
+        // const query = req.query
+        // const page = query.page
+        // const pagesNumber = parseInt(page)
+        // const perpages = 9
+        // const skip = pagesNumber * perpages
+        const result = await addCampColaction.find().toArray()
         res.send(result)
       }
   
@@ -1124,42 +1124,50 @@ app.delete('/upcam-camp/delete/:id',verifyToken,async(req,res) => {
 
 
 
-// -----------------------------------Aggregate addupcamingcamp---------------------
+  // professional expted camp-------------------------------
 
-// app.get('/upcamingcampdataall', async (req, res) => {
-//   try {
 
-//     // const email = req.params.email;
 
-//     // console.log('990 ---->',email)
-
-//     const result = await upCamingCampcareColaction.aggregate([
-
-//       // {
-//       //   $match: {
-//       //     'participants.email': email  
-//       //   }
-//       // },
-
-//       {
-//         $lookup: {
-//           from: 'RegisterCamp',
-//           localField: 'upcamingcampid',
-//           foreignField: '_id',
-//           as: 'payments'
-//         }
-//       }
-//     ]).toArray();
-
-    // Send the result as a JSON response
-//     // res.json(result);
-//   } catch (error) {
-//     // Handle any errors that occurred during the database operation
-//     console.error(error);
-//     res.status(500).send('Internal Server Error');
-//   }
-// });
+  app.get('/accpected-camp/email/:email',verifyToken, async (req, res) => {
+    try {
+      const email = req.params.email;
+      console.log('1134 ---->',email)
   
+      const query = { email : email, status: 'confrimed',role: 'professionals' };
+  
+      console.log(query);
+  
+      const results = await uupCamingCampRegsiterCareColaction.find(query).toArray();
+  
+      console.log(results);
+      res.send(results);
+    } catch (err) {
+      console.log(err);
+      res.status(500).send('Internal Server Error');
+    }
+  });
+
+// ----------------------------------------------------------------------
+
+  app.get('/accpected-camp/:email',verifyToken, async (req, res) => {
+    try {
+      const email = req.params.email;
+      console.log('1134 ---->',email)
+  
+      const query = { email : email,role: 'professionals' };
+  
+      console.log(query);
+  
+      const results = await uupCamingCampRegsiterCareColaction.find(query).toArray();
+  
+      console.log(results);
+      res.send(results);
+    } catch (err) {
+      console.log(err);
+      res.status(500).send('Internal Server Error');
+    }
+  });
+
 
 
 
