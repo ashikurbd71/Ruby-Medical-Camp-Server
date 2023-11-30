@@ -1066,7 +1066,114 @@ app.get('/paymenthistorys/email/:email', async (req, res) => {
   }
 });
 
+
+
+// ---------------------------------DELELETE UPCAME DATA--------------------------------
+
+
+
+app.delete('/upcam-camp/delete/:id',verifyToken,async(req,res) => {
+  try{
+    
+    const id = req.params.id
+    const query ={ _id : new ObjectId(id)}
+    const result = await upCamingCampcareColaction.deleteOne(query)
+    res.send(result)
+    console.log(result)
+  }
+  catch(err){
   
+    console.log(err)
+  }
+  })
+
+
+
+
+  // UPCAMING DELETE------------------------------------------------------------
+
+
+
+  app.put('/upcamingupdate-camp/:id',verifyToken,async(req,res) => {
+
+    try{
+      const id = req.params.id;
+      const camp = req.body;
+      
+      console.log("id", id);
+      const filter = { _id: new ObjectId(id) };
+      // const options = { upsert: true };
+      const updatedcamp = {
+        $set: {
+        ...camp
+        },
+      };
+      const result = await upCamingCampcareColaction.updateOne(
+        filter,
+        updatedcamp,
+        // options
+      );
+      res.send(result);
+    }
+  
+    catch(err){
+      console.log(err)
+    }
+  })
+  
+
+
+
+// -----------------------------------Aggregate addupcamingcamp---------------------
+
+// app.get('/upcamingcampdataall', async (req, res) => {
+//   try {
+
+//     // const email = req.params.email;
+
+//     // console.log('990 ---->',email)
+
+//     const result = await upCamingCampcareColaction.aggregate([
+
+//       // {
+//       //   $match: {
+//       //     'participants.email': email  
+//       //   }
+//       // },
+
+//       {
+//         $lookup: {
+//           from: 'RegisterCamp',
+//           localField: 'upcamingcampid',
+//           foreignField: '_id',
+//           as: 'payments'
+//         }
+//       }
+//     ]).toArray();
+
+    // Send the result as a JSON response
+//     // res.json(result);
+//   } catch (error) {
+//     // Handle any errors that occurred during the database operation
+//     console.error(error);
+//     res.status(500).send('Internal Server Error');
+//   }
+// });
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
